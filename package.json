@@ -1,8 +1,12 @@
 {
-  "name": "babel-es5-array-autopolyfill",
+  "name": "babel-plugin-es5-array-autopolyfill",
   "version": "1.0.0",
   "description": "",
   "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Termina1/babel-plugin-es5-array-autopolyfill.git"
+  },
   "author": "Termina1",
   "license": "MIT",
   "devDependencies": {
