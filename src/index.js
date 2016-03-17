@@ -8,7 +8,6 @@ export default function({ types: t }) {
         if (!t.isMemberExpression(callee)) {
           return;
         }
-
         var property = callee.property;
         if (t.isIdentifier(property)
           && replaceProperties.indexOf(property.name) >= 0) {
