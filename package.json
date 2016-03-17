@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "lib/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "Termina1",
   "license": "MIT",
   "devDependencies": {
@@ -28,9 +25,5 @@
   },
   "keywords": [
     "babel-plugin"
-  ],
-  "devDependencies": {
-    "babel-helper-plugin-test-runner": "^6.3.13"
-  }
-
+  ]
 }
