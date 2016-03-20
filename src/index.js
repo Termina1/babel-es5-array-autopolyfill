@@ -7,7 +7,7 @@ export default function({ types: t }) {
     visitor: {
       Program: {
         enter(path) {
-          var usedMethods = {};
+         usedMethods = {};
         },
         exit(path, state) {
           const libName = state.opts.polyfill;
