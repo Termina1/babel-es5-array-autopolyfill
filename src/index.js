@@ -1,6 +1,18 @@
 const replaceProperties = ['reduce', 'map', 'filter', 'forEach'];
 const prefix = "es5";
 
+function isArrayType(t, node) {
+  if (t.isArrayTypeAnnotation(node)) {
+    return true;
+  }
+
+  if (t.isGenericTypeAnnotation(node) && node.id.name === 'Array') {
+    return true;
+  }
+
+  return false;
+}
+
 export default function({ types: t }) {
   var usedMethods = {};
   return {
@@ -31,10 +43,19 @@ export default function({ types: t }) {
 
       CallExpression(path) {
         var callee = path.node.callee;
-        if (!t.isMemberExpression(callee)) {
+        var identifierPath = path.get("callee.object", true);
+
+        if (!identifierPath.isNodeType("Identifier")
+          && !identifierPath.isNodeType("TypeCastExpression")) {
+            return;
+        }
+
+        var annotation = identifierPath.getTypeAnnotation();
+        if (!isArrayType(t, annotation)) {
           return;
         }
-        var property = callee.property;
+
+        var property = path.get('callee.property').node;
         if (t.isIdentifier(property)
           && replaceProperties.indexOf(property.name) >= 0) {
             usedMethods[property.name] = true;

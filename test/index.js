@@ -11,6 +11,7 @@ function trim(str) {
 describe('array es5 polyfill', () => {
   const fixturesDir = path.join(__dirname, 'fixtures');
   fs.readdirSync(fixturesDir).map((caseName) => {
+
     it(`should ${caseName.split('-').join(' ')}`, () => {
       const fixtureDir = path.join(fixturesDir, caseName);
       let actualPath = path.join(fixtureDir, 'actual.js');

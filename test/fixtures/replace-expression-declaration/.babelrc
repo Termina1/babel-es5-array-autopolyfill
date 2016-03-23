@@ -1,5 +1,6 @@
 {
   "plugins": [
+    "syntax-flow",
     ["../../../src", {
       "polyfill": "es5-collection-methods"
     }]
