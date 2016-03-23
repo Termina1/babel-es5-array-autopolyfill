@@ -1,8 +1,15 @@
 {
-  "plugins": [
-    "syntax-flow",
-    ["../../../src", {
-      "polyfill": "es5-collection-methods"
-    }]
-  ]
+  "passPerPreset": true,
+  "presets": [{
+    "plugins": [
+      "syntax-flow",
+      ["../../../src", {
+        "polyfill": "es5-collection-methods"
+      }]
+    ]
+  }, {
+    "plugins": [
+      "transform-flow-strip-types"
+    ]
+  }]
 }

@@ -5,6 +5,6 @@ arr.map(el => el + 1);
 
 getType([]).reduce((acc, el) => acc + el);
 
-(getType2(): bool).map(el => el + 1);
+getType2().map(el => el + 1);
 
-(ev.attachments: any).filter(el => el);
+ev.attachments.filter(el => el);
