@@ -42,7 +42,12 @@ export default function({ types: t }) {
       },
 
       CallExpression(path) {
-        var callee = path.node.callee;
+        var property = path.get('callee.property').node;
+        if (!t.isIdentifier(property) || replaceProperties.indexOf(property.name) < 0) {
+          return;
+        }
+
+
         var identifierPath = path.get("callee.object", true);
 
         if (!identifierPath.isNodeType("Identifier")
@@ -54,17 +59,14 @@ export default function({ types: t }) {
         if (!isArrayType(t, annotation)) {
           return;
         }
-
-        var property = path.get('callee.property').node;
-        if (t.isIdentifier(property)
-          && replaceProperties.indexOf(property.name) >= 0) {
-            usedMethods[property.name] = true;
-            property.name = prefix + property.name;
-            path.replaceWith(t.callExpression(
-              property,
-              [callee.object].concat(path.node.arguments)
-            ));
-          }
+        
+        var callee = path.node.callee;
+        usedMethods[property.name] = true;
+        property.name = prefix + property.name;
+        path.replaceWith(t.callExpression(
+          property,
+          [callee.object].concat(path.node.arguments)
+        ));
       }
     }
   };
