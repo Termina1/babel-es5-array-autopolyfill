@@ -1,5 +1,5 @@
 const replaceProperties = ['reduce', 'map', 'filter', 'forEach'];
-const arrayReturn = ['map', 'filter'];
+const arrayReturn = ['map', 'filter', 'concat', 'slice', 'sort', 'splice'];
 const prefix = "es5";
 
 function isArrayType(t, node) {
@@ -15,14 +15,15 @@ function isArrayType(t, node) {
 }
 
 function isObjectCaller(t, property) {
-  return t.isIdentifier(property)
-    && property
-    && replaceProperties.indexOf(property.name) >= 0;
+  return t.isIdentifier(property) && property;
 }
 
-function isFunctionTypeCastCaller(t, path, prop) {
-  return t.isTypeCastExpression(path.parentPath.node)
-    && !prop;
+function isReplacable(name) {
+  return replaceProperties.indexOf(name) >= 0
+}
+
+function isArrayReturn(name) {
+  return arrayReturn.indexOf(name) >= 0
 }
 
 export default function({ types: t }) {
@@ -61,7 +62,6 @@ export default function({ types: t }) {
           if (!isObjectCaller(t, property)) {
             return;
           }
-
           var identifierPath = path.get("callee.object", true);
           if (!identifierPath.isNodeType("Identifier")
             && !identifierPath.isNodeType("TypeCastExpression")) {
@@ -73,18 +73,38 @@ export default function({ types: t }) {
           if (!isArrayType(t, annotation)) {
             return;
           }
+
+          var callee = path.node.callee;
+          if (isArrayReturn(property.name)
+            && !isReplacable(property.name)
+            && !t.isTypeCastExpression(path.parentPath.node)) {
+              path.replaceWith(t.typeCastExpression(
+                t.callExpression(
+                  callee,
+                  path.node.arguments
+                ),
+                t.arrayTypeAnnotation(t.identifier('Any'))
+              ));
+              return;
+          }
+
+          if (!isReplacable(property.name)) {
+            return;
+          }
+
           var oldName = property.name;
           property.name = prefix + property.name;
-          var callee = path.node.callee;
+
           var expression = t.callExpression(
             property,
             [callee.object].concat(path.node.arguments)
           );
+
           usedMethods[oldName] = true;
           if (arrayReturn.indexOf(oldName) >= 0) {
             path.replaceWith(t.typeCastExpression(
               expression,
-              t.arrayTypeAnnotation('Any')
+              t.arrayTypeAnnotation(t.identifier('Any'))
             ));
           } else {
             path.replaceWith(expression);
