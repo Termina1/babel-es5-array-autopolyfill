@@ -26,6 +26,24 @@ function isArrayReturn(name) {
   return arrayReturn.indexOf(name) >= 0
 }
 
+function isObjectKeysExpression(path, prop) {
+  return path.node.name === 'Object'
+    && prop.name === 'keys'
+    && !path.scope.getBinding('Object');
+}
+
+function replaceObjectKeys(t, path, property, usedMethods) {
+  usedMethods[property.name] = true;
+  property.name = prefix + property.name;
+  path.replaceWith(t.typeCastExpression(
+    t.callExpression(
+      property,
+      path.node.arguments
+    ),
+    t.arrayTypeAnnotation(t.identifier('String'))
+  ));
+}
+
 export default function({ types: t }) {
   var usedMethods = {};
   return {
@@ -68,13 +86,18 @@ export default function({ types: t }) {
               return;
           }
 
+          var callee = path.node.callee;
+
+          if (isObjectKeysExpression(identifierPath, property)) {
+            return replaceObjectKeys(t, path, property, usedMethods);
+          }
+
           annotation = identifierPath.getTypeAnnotation();
 
           if (!isArrayType(t, annotation)) {
             return;
           }
 
-          var callee = path.node.callee;
           if (isArrayReturn(property.name)
             && !isReplacable(property.name)
             && !t.isTypeCastExpression(path.parentPath.node)) {
