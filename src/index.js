@@ -1,4 +1,5 @@
 const replaceProperties = ['reduce', 'map', 'filter', 'forEach'];
+const arrayReturn = ['map', 'filter'];
 const prefix = "es5";
 
 function isArrayType(t, node) {
@@ -11,6 +12,17 @@ function isArrayType(t, node) {
   }
 
   return false;
+}
+
+function isObjectCaller(t, property) {
+  return t.isIdentifier(property)
+    && property
+    && replaceProperties.indexOf(property.name) >= 0;
+}
+
+function isFunctionTypeCastCaller(t, path, prop) {
+  return t.isTypeCastExpression(path.parentPath.node)
+    && !prop;
 }
 
 export default function({ types: t }) {
@@ -41,32 +53,43 @@ export default function({ types: t }) {
         }
       },
 
-      CallExpression(path) {
-        var property = path.get('callee.property').node;
-        if (!t.isIdentifier(property) || replaceProperties.indexOf(property.name) < 0) {
-          return;
-        }
+      CallExpression: {
 
-
-        var identifierPath = path.get("callee.object", true);
-
-        if (!identifierPath.isNodeType("Identifier")
-          && !identifierPath.isNodeType("TypeCastExpression")) {
+        exit(path) {
+          var annotation;
+          var property = path.get('callee.property').node;
+          if (!isObjectCaller(t, property)) {
             return;
-        }
+          }
 
-        var annotation = identifierPath.getTypeAnnotation();
-        if (!isArrayType(t, annotation)) {
-          return;
+          var identifierPath = path.get("callee.object", true);
+          if (!identifierPath.isNodeType("Identifier")
+            && !identifierPath.isNodeType("TypeCastExpression")) {
+              return;
+          }
+
+          annotation = identifierPath.getTypeAnnotation();
+
+          if (!isArrayType(t, annotation)) {
+            return;
+          }
+          var oldName = property.name;
+          property.name = prefix + property.name;
+          var callee = path.node.callee;
+          var expression = t.callExpression(
+            property,
+            [callee.object].concat(path.node.arguments)
+          );
+          usedMethods[oldName] = true;
+          if (arrayReturn.indexOf(oldName) >= 0) {
+            path.replaceWith(t.typeCastExpression(
+              expression,
+              t.arrayTypeAnnotation('Any')
+            ));
+          } else {
+            path.replaceWith(expression);
+          }
         }
-        
-        var callee = path.node.callee;
-        usedMethods[property.name] = true;
-        property.name = prefix + property.name;
-        path.replaceWith(t.callExpression(
-          property,
-          [callee.object].concat(path.node.arguments)
-        ));
       }
     }
   };

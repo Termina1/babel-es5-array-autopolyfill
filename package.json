@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-es5-array-autopolyfill",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "",
   "main": "lib/index.js",
   "repository": {
